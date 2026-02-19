@@ -1,0 +1,85 @@
+{
+  "states": [
+    {
+      "state": "FL",
+      "name": "Florida Department of Financial Services",
+      "url": "https://www.fltreasurehunt.gov/",
+      "searchType": "form",
+      "selectors": {
+        "searchInput": "#txtLastName",
+        "submitButton": "#btnSearch",
+        "resultsTable": "#gvResults",
+        "nameField": "td:nth-child(1)",
+        "amountField": "td:nth-child(4)",
+        "addressField": "td:nth-child(2)"
+      }
+    },
+    {
+      "state": "CA",
+      "name": "California State Controller's Office",
+      "url": "https://ucpi.sco.ca.gov/en/Property/SearchIndex",
+      "searchType": "form",
+      "selectors": {
+        "searchInput": "#LastName",
+        "submitButton": "button[type='submit']",
+        "resultsTable": ".search-results",
+        "nameField": ".owner-name",
+        "amountField": ".amount",
+        "addressField": ".property-address"
+      }
+    },
+    {
+      "state": "TX",
+      "name": "Texas Comptroller Unclaimed Property",
+      "url": "https://claimittexas.org/app/claim-search",
+      "searchType": "form"
+    },
+    {
+      "state": "NY",
+      "name": "New York State Comptroller",
+      "url": "https://www.osc.state.ny.us/unclaimed-funds",
+      "searchType": "form"
+    },
+    {
+      "state": "PA",
+      "name": "Pennsylvania Treasury",
+      "url": "https://www.patreasury.gov/unclaimed-property/",
+      "searchType": "form"
+    },
+    {
+      "state": "IL",
+      "name": "Illinois State Treasurer",
+      "url": "https://icash.illinoistreasurer.gov/",
+      "searchType": "form"
+    },
+    {
+      "state": "OH",
+      "name": "Ohio Department of Commerce",
+      "url": "https://www.com.ohio.gov/unfd/",
+      "searchType": "form"
+    },
+    {
+      "state": "GA",
+      "name": "Georgia Department of Revenue",
+      "url": "https://upgateway.dor.ga.gov/",
+      "searchType": "form"
+    },
+    {
+      "state": "NC",
+      "name": "North Carolina State Treasurer",
+      "url": "https://www.nccash.com/",
+      "searchType": "form"
+    },
+    {
+      "state": "MI",
+      "name": "Michigan Department of Treasury",
+      "url": "https://unclaimedproperty.michigan.gov/",
+      "searchType": "form"
+    }
+  ],
+  "fallback": {
+    "name": "MissingMoney.com",
+    "url": "https://www.missingmoney.com/",
+    "description": "National database for remaining 40 states"
+  }
+}

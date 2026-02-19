@@ -1,0 +1,61 @@
+<svg width="400" height="120" viewBox="0 0 400 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield Background with Battle Damage -->
+  <defs>
+    <linearGradient id="metalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#C0C0C0;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#A0A0A0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#808080;stop-opacity:1" />
+    </linearGradient>
+    <filter id="orangeGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="circuitPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M0 10 H20 M10 0 V20 M5 5 H15 V15 H5 Z" stroke="#FF4500" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  
+  <!-- Main Shield with metallic texture -->
+  <path d="M60 20 L90 15 L90 50 C90 65 75 75 60 78 C45 75 30 65 30 50 L30 15 Z" 
+        fill="url(#metalGradient)" stroke="#FF4500" stroke-width="2" filter="url(#orangeGlow)"/>
+  
+  <!-- Circuit board pattern overlay -->
+  <path d="M60 20 L90 15 L90 50 C90 65 75 75 60 78 C45 75 30 65 30 50 L30 15 Z" 
+        fill="url(#circuitPattern)" opacity="0.6"/>
+  
+  <!-- Battle damage scratches -->
+  <path d="M35 25 L40 30 M50 35 L55 40 M70 45 L75 50" stroke="#000000" stroke-width="1.5" opacity="0.4"/>
+  
+  <!-- Falling US Currency Bills -->
+  <g opacity="0.7">
+    <!-- Dollar bill 1 -->
+    <rect x="45" y="18" width="12" height="6" rx="0.5" fill="#85BB65" stroke="#2F5D2F" stroke-width="0.5" transform="rotate(-15 51 21)"/>
+    <text x="51" y="22" font-family="Arial" font-size="4" fill="#2F5D2F" text-anchor="middle" transform="rotate(-15 51 21)">$</text>
+    
+    <!-- Dollar bill 2 -->
+    <rect x="65" y="25" width="12" height="6" rx="0.5" fill="#85BB65" stroke="#2F5D2F" stroke-width="0.5" transform="rotate(20 71 28)"/>
+    <text x="71" y="29" font-family="Arial" font-size="4" fill="#2F5D2F" text-anchor="middle" transform="rotate(20 71 28)">$</text>
+    
+    <!-- Dollar bill 3 -->
+    <rect x="55" y="55" width="12" height="6" rx="0.5" fill="#85BB65" stroke="#2F5D2F" stroke-width="0.5" transform="rotate(-25 61 58)"/>
+    <text x="61" y="59" font-family="Arial" font-size="4" fill="#2F5D2F" text-anchor="middle" transform="rotate(-25 61 58)">$</text>
+  </g>
+  
+  <!-- Central HBU Emblem -->
+  <circle cx="60" cy="45" r="12" fill="#000000" stroke="#FF4500" stroke-width="2"/>
+  <text x="60" y="50" font-family="Arial Black" font-size="10" font-weight="900" fill="#FF4500" text-anchor="middle">HBU</text>
+  
+  <!-- Main Text: HBU ASSET RECOVERY -->
+  <text x="110" y="40" font-family="Impact, Arial Black" font-size="24" font-weight="900" fill="#FF4500" letter-spacing="2" filter="url(#orangeGlow)">HBU ASSET</text>
+  <text x="110" y="65" font-family="Impact, Arial Black" font-size="24" font-weight="900" fill="#C0C0C0" letter-spacing="2">RECOVERY</text>
+  
+  <!-- Subtitle: 5-YEARS TRUSTED SERVICE -->
+  <rect x="110" y="72" width="240" height="1" fill="#FF4500" opacity="0.5"/>
+  <text x="110" y="85" font-family="Arial" font-size="10" font-weight="600" fill="#C0C0C0" letter-spacing="3">5-YEARS TRUSTED SERVICE</text>
+  
+  <!-- Orange glow accent lines -->
+  <line x1="105" y1="35" x2="105" y2="68" stroke="#FF4500" stroke-width="3" opacity="0.8" filter="url(#orangeGlow)"/>
+</svg>

@@ -1,0 +1,439 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id // Clerk user ID
+  email           String   @unique
+  name            String?
+  imageUrl        String?
+  
+  // Settings
+  settings        UserSettings?
+  
+  // Team membership
+  teamMemberships TeamMember[]
+  ownedTeams      Team[]    @relation("TeamOwner")
+  
+  // API Keys
+  apiKeys         ApiKey[]
+  
+  // Activity
+  activityLogs    ActivityLog[]
+  
+  // Leads relation
+  leads           Lead[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([email])
+}
+
+model UserSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Notification preferences
+  emailNotifications    Boolean  @default(true)
+  smsNotifications      Boolean  @default(false)
+  pushNotifications     Boolean  @default(true)
+  weeklyDigest          Boolean  @default(true)
+  
+  // Communication preferences
+  marketingEmails       Boolean  @default(false)
+  productUpdates        Boolean  @default(true)
+  
+  // Display preferences
+  theme                 String   @default("system") // light, dark, system
+  timezone              String   @default("America/Chicago")
+  language              String   @default("en")
+  dateFormat            String   @default("MM/DD/YYYY")
+  
+  // Recovery preferences
+  defaultState          String?
+  autoEnrichLeads       Boolean  @default(true)
+  autoFileThreshold     Decimal? @db.Decimal(10, 2) // Auto-file claims above this amount
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+model Team {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  description     String?
+  imageUrl        String?
+  
+  // Owner
+  ownerId         String
+  owner           User     @relation("TeamOwner", fields: [ownerId], references: [id])
+  
+  // Members
+  members         TeamMember[]
+  
+  // Team API Keys
+  apiKeys         ApiKey[]
+  
+  // Billing
+  plan            String   @default("free") // free, starter, professional, enterprise
+  stripeCustomerId String?
+  stripeSubscriptionId String?
+  
+  // Limits
+  monthlyLeadLimit Int     @default(100)
+  monthlyLeadsUsed Int     @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([ownerId])
+  @@index([slug])
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  role      String   @default("member") // owner, admin, member, viewer
+  
+  invitedBy String?
+  invitedAt DateTime @default(now())
+  joinedAt  DateTime?
+  
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  name        String
+  key         String   @unique // Hashed key
+  keyPrefix   String   // First 8 chars for display (e.g., "hbu_live_")
+  keyHint     String   // Last 4 chars for identification
+  
+  // Ownership - either user or team
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId      String?
+  team        Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  // Permissions
+  permissions String[] @default(["read"]) // read, write, delete, admin
+  
+  // Rate limiting
+  rateLimit   Int      @default(1000) // requests per hour
+  
+  // Usage tracking
+  lastUsedAt  DateTime?
+  usageCount  Int      @default(0)
+  
+  // Expiration
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([teamId])
+  @@index([key])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  action      String   // login, api_call, lead_created, settings_updated, etc.
+  resource    String?  // lead, team, api_key, etc.
+  resourceId  String?
+  
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Lead {
+  id                String   @id @default(cuid())
+  name              String   // Unified name field
+  claimantName      String   @default("") // Legacy field for backward compatibility
+  propertyAddress   String?
+  state             String
+  county            String?
+  surplusAmount     Decimal  @default(0) @db.Decimal(10, 2)
+  claimAmount       Decimal  @db.Decimal(10, 2)
+  status            String   @default("new") // new, enriched, contacted, filed, recovered
+  source            String   // state database URL or "MissingMoney.com"
+  rawData           Json?
+  
+  // Enrichment data
+  phone             String?
+  phones            String[]  @default([])
+  email             String?
+  emails            String[]  @default([])
+  mailingAddress    String?
+  address           String?  // Property address
+  city              String?
+  skipTraceProvider String?
+  skipTraceData     Json?
+  enrichmentScore   Decimal? @db.Decimal(3, 2)
+  enrichmentSource  String?
+  dncScrubbed       Boolean  @default(false)
+  
+  // Outreach tracking
+  lastContactDate   DateTime?
+  contactCount      Int      @default(0)
+  optedOut          Boolean  @default(false)
+  
+  // Filing tracking
+  filingStatus      String?  // pending, submitted, approved, denied
+  filingDate        DateTime?
+  recoveryDate      DateTime?
+  recoveredAmount   Decimal? @db.Decimal(10, 2)
+  
+  // Trello integration field
+  trelloCardId      String?  @unique
+  
+  // User association for Clerk
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Relationships
+  notes             Note[]
+  documents         Document[]
+  communications    Communication[]
+  skipTraceResults  SkipTraceResult[]
+  dncRegistry       DNCRegistry[]
+  complianceViolations ComplianceViolation[]
+  optOuts           OptOut[]
+  ethicsNFTs        EthicsNFT[]
+  filingStatuses    FilingStatus[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([state])
+  @@index([status])
+  @@index([claimAmount])
+  @@index([userId])
+  @@index([trelloCardId])
+}
+
+model AruRun {
+  id          String   @id @default(cuid())
+  state       String
+  leadsFound  Int      @default(0)
+  runAt       DateTime @default(now())
+  status      String   // success, failed, partial
+  errorLog    String?
+  
+  @@index([state])
+  @@index([runAt])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  content   String
+  createdBy String
+  createdAt DateTime @default(now())
+  
+  @@index([leadId])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  fileName  String
+  fileUrl   String
+  fileType  String
+  uploadedBy String
+  uploadedAt DateTime @default(now())
+  
+  @@index([leadId])
+}
+
+model Communication {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type      String   // sms, email, call
+  direction String   // inbound, outbound
+  content   String?
+  phone     String?  // Added phone field for communication tracking
+  status    String   // sent, delivered, failed, received
+  sentAt    DateTime @default(now())
+  createdAt DateTime @default(now()) // Added createdAt for consistency
+  
+  @@index([leadId])
+  @@index([type])
+}
+
+model SkipTraceResult {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  provider  String   // skip-genie, resimpli, mojo, etc
+  success   Boolean
+  data      Json?
+  createdAt DateTime @default(now())
+  
+  @@index([leadId])
+  @@index([provider])
+}
+
+model ComplianceScan {
+  id          String   @id @default(cuid())
+  contentType String   // sms, email
+  content     String
+  compliant   Boolean
+  risks       Json?
+  fixes       Json?
+  createdAt   DateTime @default(now())
+  
+  @@index([compliant])
+}
+
+model Bounty {
+  id        String   @id @default(cuid())
+  leadId    String
+  amount    Decimal  @db.Decimal(10, 2)
+  txHash    String?
+  status    String   // pending, paid, claimed
+  createdAt DateTime @default(now())
+  
+  @@index([leadId])
+  @@index([status])
+}
+
+model KnowledgeQuery {
+  id         String   @id @default(cuid())
+  question   String
+  answer     String
+  confidence Decimal  @db.Decimal(3, 2)
+  createdAt  DateTime @default(now())
+}
+
+model ToolExecution {
+  id        String   @id @default(cuid())
+  toolName  String
+  args      Json
+  result    Json
+  userId    String
+  prompt    String
+  success   Boolean  @default(true)
+  duration  Int?     // milliseconds
+  createdAt DateTime @default(now())
+  
+  @@index([toolName])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  type        String   // twilio_stop, docusign_signed, clerk_update, polygon_bounty
+  payload     Json
+  processedAt DateTime @default(now())
+  aiResponse  String?
+  success     Boolean  @default(true)
+  
+  @@index([type])
+  @@index([processedAt])
+}
+
+model DNCRegistry {
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  leadId      String?
+  lead        Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  scrubbedAt  DateTime @default(now())
+  expiresAt   DateTime
+  
+  @@index([phone])
+  @@index([expiresAt])
+}
+
+model ComplianceViolation {
+  id          String   @id @default(cuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  violations  String[]
+  action      String
+  blocked     Boolean  @default(true)
+  details     Json?
+  createdAt   DateTime @default(now())
+  
+  @@index([leadId])
+  @@index([blocked])
+  @@index([createdAt])
+}
+
+model OptOut {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  reason    String?
+  method    String   // sms_stop, web_form, call_request
+  createdAt DateTime @default(now())
+  
+  @@index([phone])
+  @@index([createdAt])
+}
+
+model EthicsNFT {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tokenId   String   @unique
+  metadata  Json
+  mintedAt  DateTime @default(now())
+  txHash    String?
+  
+  @@index([leadId])
+  @@index([tokenId])
+}
+
+model FilingStatus {
+  id          String   @id @default(cuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  state       String
+  county      String
+  filingType  String   // "surplus", "12os", "unclaimed-property"
+  status      String   // "pending", "submitted", "approved", "rejected"
+  submittedAt DateTime?
+  approvedAt  DateTime?
+  trackingId  String?
+  documentUrl String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([leadId])
+  @@index([state, county])
+  @@index([status])
+}

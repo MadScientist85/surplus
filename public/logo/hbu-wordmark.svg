@@ -1,0 +1,14 @@
+<svg width="300" height="50" viewBox="0 0 300 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="textGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <text x="0" y="30" font-family="Impact, Arial Black" font-size="28" font-weight="900" fill="#FF4500" letter-spacing="2" filter="url(#textGlow)">HBU ASSET</text>
+  <text x="0" y="47" font-family="Impact, Arial Black" font-size="12" font-weight="700" fill="#C0C0C0" letter-spacing="4">RECOVERY</text>
+</svg>

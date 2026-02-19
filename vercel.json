@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/scraping/schedule",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/apocalypse",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
