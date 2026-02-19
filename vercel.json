@@ -1,12 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/scraping/schedule",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/apocalypse",
-      "schedule": "0 3 * * *"
-    }
-  ]
-}
+{\n  \"crons\": [\n    {\n      \"path\": \"/api/cron/follow-up\",\n      \"schedule\": \"0 10 * * *\"\n    }\n  ]\n}
