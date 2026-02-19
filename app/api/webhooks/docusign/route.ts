@@ -1,23 +1,30 @@
-import type { NextRequest } from "next/server"
-import { processWebhook } from "@/lib/ai/webhook-nexus"
-import * as Sentry from "@sentry/nextjs"
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json()
-    const { envelopeId, status, event } = body
+const prisma = new PrismaClient();
 
-    if (status === "completed" || event === "envelope-completed") {
-      await processWebhook({
-        type: "docusign_signed",
-        data: { envelopeId, status },
-        timestamp: new Date(),
-      })
+export async function POST(req: Request) {
+    try {
+        const body = await req.json();
+        const envelopeId = body.data.envelopeId;
+        const eventStatus = body.event;
+
+        if (eventStatus === 'envelope-completed') {
+            const lead = await prisma.lead.findUnique({ where: { docEnvelopeId: envelopeId } });
+            if (lead) {
+                await prisma.lead.update({
+                    where: { id: lead.id },
+                    data: {
+                        status: 'PACKET_SIGNED',
+                        docSignedAt: new Date(),
+                        docSignedUrl: `https://your-storage.com/signed/${lead.id}.pdf`
+                    }
+                });
+            }
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ error: 'Webhook failed' }, { status: 500 });
     }
-
-    return Response.json({ success: true })
-  } catch (error) {
-    Sentry.captureException(error)
-    return Response.json({ error: "Failed" }, { status: 500 })
-  }
 }
